@@ -1,0 +1,12 @@
+spring:
+  application:
+    name: mybatis-springboot
+  datasource:
+    driver-class-name: com.mysql.jdbc.Driver
+    url: jdbc:mysql://192.168.200.129:3308/mytest
+    username: root
+    password: 7324368Best!@
+server:
+  port: 9090
+mybatis:
+  mapper-locations: classpath*:com/zhangxp/boot/mapper.xml.*.xml
