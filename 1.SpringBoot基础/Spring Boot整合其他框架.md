@@ -420,3 +420,5 @@ public class AppSpringBoot {
 
 #### 2.3 SpringBoot整合多数据源
 
+#### 2.4 SpringBoot整合rabbitmq
+
