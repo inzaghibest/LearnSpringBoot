@@ -9,8 +9,8 @@ import com.zhangxp.entity.UserEntity;
  */
 // mybatis有两种形式：xml和注解
 public interface UserMapper {
-    @Select("select * from users where name = #{name}")
+    @Select("select * from user where name = #{name}")
     UserEntity findByName(@Param("name") String name);
-    @Insert("insert into users(name, age) values(#{name}, #{age})")
-    int insert(@Param("name") String name, @Param("age") Integer age);
+    @Insert("insert into user(id, username, password) values(#{id}, #{name}, #{password})")
+    int insert(@Param("id") Integer id, @Param("name") String name, @Param("password") String password);
 }

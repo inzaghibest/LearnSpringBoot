@@ -14,7 +14,7 @@ public class UserController {
     private UserMapper userMapper;
 
     @RequestMapping("/addUser")
-    public String addUser(String name, Integer age) {
-        return userMapper.insert(name, age) > 0 ? "succes" : "failed";
+    public String addUser(Integer id, String name, String password) {
+        return userMapper.insert(1, "zhangxp", "test") > 0 ? "succes" : "failed";
     }
 }

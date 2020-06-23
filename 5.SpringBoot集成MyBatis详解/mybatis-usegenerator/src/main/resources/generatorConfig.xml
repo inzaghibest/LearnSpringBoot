@@ -113,7 +113,7 @@
                 或者只使用Mapper接口+Annotation，所以，如果 javaClientGenerator配置中配置了需要生成XML的话，这个元素就必须配置
             targetPackage/targetProject:同javaModelGenerator
          -->
-        <sqlMapGenerator targetPackage="${pakeage.name}.mapper.xml" targetProject="src/main/resources">
+        <sqlMapGenerator targetPackage="${package.name}.mapper/xml" targetProject="src/main/java">
             <!-- 在targetPackage的基础上，根据数据库的schema再生成一层package，最终生成的类放在这个package下，默认为false -->
             <!--<property name="enableSubPackages" value="true"/>-->
         </sqlMapGenerator>
@@ -174,10 +174,7 @@
 
             注意，table里面很多参数都是对javaModelGenerator，context等元素的默认属性的一个复写；
          -->
-        <table tableName="user" domainObjectName="User">
-            <generatedKey column="id" sqlStatement="JDBC"/>
-        </table>
-        <table tableName="Book" domainObjectName="Book">
+        <table tableName="users" domainObjectName="User">
             <generatedKey column="id" sqlStatement="JDBC"/>
         </table>
 

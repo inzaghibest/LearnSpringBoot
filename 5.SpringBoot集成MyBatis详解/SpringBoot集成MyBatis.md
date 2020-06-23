@@ -474,3 +474,199 @@ generatorConfig.xml
 可以看到自动生成的代码:
 
 ![image-20200622214727682](SpringBoot集成MyBatis.assets/image-20200622214727682.png)
+
+## 7. SpringBoot配置mybatis的步骤
+
+#### 步骤一:引入pom.xml文件:
+
+```xml
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+    <modelVersion>4.0.0</modelVersion>
+
+    <groupId>com.zhangxp</groupId>
+    <artifactId>mybatis-springboot</artifactId>
+    <version>1.0-SNAPSHOT</version>
+
+    <properties>
+        <mysql.version>8.0.11</mysql.version>
+    </properties>
+
+    <parent>
+        <groupId>org.springframework.boot</groupId>
+        <artifactId>spring-boot-starter-parent</artifactId>
+        <version>2.2.6.RELEASE</version>
+    </parent>
+
+    <dependencies>
+        <!--1. spring boot web 组件整合了springmvc和spring-->
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-web</artifactId>
+        </dependency>
+
+        <!--2. 引入mysql -->
+        <dependency>
+            <groupId>tk.mybatis</groupId>
+            <artifactId>mapper-spring-boot-starter</artifactId>
+            <version>2.0.4</version>
+        </dependency>
+        <dependency>
+            <groupId>mysql</groupId>
+            <artifactId>mysql-connector-java</artifactId>
+            <version>${mysql.version}</version>
+        </dependency>
+    </dependencies>
+
+</project>
+```
+
+#### 步骤二：采用mybatis-generator自动生成的代码
+
+参考6.2
+
+#### 步骤三： 配置文件
+
+一定注意：配置xml的扫描路径:
+
+```yaml
+spring:
+  application:
+    name: mybatis-springboot
+  datasource:
+    driver-class-name: com.mysql.jdbc.Driver
+    url: jdbc:mysql://49.232.105.82:3308/mytest?useSSL=false
+    username: root
+    password: 7324368Best!@
+server:
+  port: 9090
+mybatis:
+  mapper-locations: classpath*:com/zhangxp/boot/mapper/xml/*.xml
+```
+
+#### 步骤四:在启动类中加入指定要扫描的mapper类的路径包
+
+**@MapperScan("")**
+
+```java
+@MapperScan("com.zhangxp.boot.mapper")
+@SpringBootApplication
+public class MybatisSpringBootApplication {
+    public static void main(String[] args) {
+        SpringApplication.run(MybatisSpringBootApplication.class);
+    }
+}
+
+```
+
+#### 步骤五：创建测试类
+
+```java
+package com.zhangxp.boot.controller;
+
+import com.zhangxp.boot.entity.User;
+import com.zhangxp.boot.service.UserService;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestMethod;
+import org.springframework.web.bind.annotation.ResponseBody;
+import org.springframework.web.bind.annotation.RestController;
+
+import java.util.Random;
+
+/**
+ * Created by Administrator on 2020/6/22 0022.
+ */
+@RestController
+@RequestMapping("/user")
+public class UserController {
+    @Autowired
+    private UserService userService;
+
+    @ResponseBody
+    @RequestMapping(value = "/c", method = RequestMethod.GET)
+    public String create () {
+        for (int i = 0; i<10; i++)
+        {
+            User user = new User();
+            user.setUsername("121212");
+            user.setPassword("332323");
+            userService.createUser(user);
+        }
+        return "success!";
+    }
+    @RequestMapping(value = "/test", method = RequestMethod.GET)
+    public String test() {
+        return "test";
+    }
+}
+
+```
+
+#### 坑:
+
+报错:Servlet.service() for servlet [dispatcherServlet] in context with path [] ..
+
+解决方法：![image-20200623160516622](SpringBoot集成MyBatis.assets/image-20200623160516622.png)
+
+@MapperScan注解原来导入的包是mybatis原生的包，不是tk.mybatis的。。。导致报错，应该导入kt.mybatis.spring.annotation.MapperScan
+
+## 8. mybatis如何实现不用SQL的增删改操作?
+
+通过kt.mappers自动生成的mapper,我们可以用已经自动实现的如下方法进行增，查，更新操作。
+
+#### 8.1 直接上代码:
+
+```java
+package com.zhangxp.boot.service;
+
+import com.zhangxp.boot.entity.User;
+import com.zhangxp.boot.mapper.UserMapper;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Service;
+import org.slf4j.log4j12.*;
+
+/**
+ * Created by Administrator on 2020/6/22 0022.
+ */
+@Service
+public class UserService {
+    @Autowired(required = false)
+    private UserMapper userMapper;
+
+    public void createUser(User user) {
+        userMapper.insertSelective(user);
+    }
+
+    public void updateUser(User user) {
+        userMapper.updateByPrimaryKeySelective(user);
+    }
+
+    public void findUser() {
+      User user =  userMapper.selectByPrimaryKey(1);
+      if (user != null) {
+          System.out.println("---------User-------------" + user.getUsername() + user.getPassword());
+      }else {
+          System.out.println("---------User-------------NULL");
+      }
+//      System.out.println("---------User-------------" + user.getUsername() + user.getPassword());
+//      return user;
+    }
+}
+
+```
+
+
+
+#### 坑:
+
+自动生成的entity=>User.java文件中的User类：
+
+![image-20200623160204909](SpringBoot集成MyBatis.assets/image-20200623160204909.png)
+
+没有带@Id注解，导致按注解更新和查询都失败。。。加上@Id注解后，成功解决。import javax.persistence.Id;
+
+## 9. 复杂查询
+

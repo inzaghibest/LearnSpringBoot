@@ -1,28 +1,45 @@
 package com.zhangxp.boot.entity;
 
-import javax.persistence.*;
+import javax.persistence.GeneratedValue;
+import javax.persistence.Id;
+import javax.persistence.Table;
 
-@Table(name = "user")
+@Table(name = "users")
 public class User {
     @GeneratedValue(generator = "JDBC")
-    private Long id;
-
-    private String password;
+    @Id
+    private Integer id;
 
     private String username;
+
+    private String password;
 
     /**
      * @return id
      */
-    public Long getId() {
+    public Integer getId() {
         return id;
     }
 
     /**
      * @param id
      */
-    public void setId(Long id) {
+    public void setId(Integer id) {
         this.id = id;
+    }
+
+    /**
+     * @return username
+     */
+    public String getUsername() {
+        return username;
+    }
+
+    /**
+     * @param username
+     */
+    public void setUsername(String username) {
+        this.username = username;
     }
 
     /**
@@ -39,17 +56,9 @@ public class User {
         this.password = password;
     }
 
-    /**
-     * @return username
-     */
-    public String getUsername() {
-        return username;
-    }
-
-    /**
-     * @param username
-     */
-    public void setUsername(String username) {
-        this.username = username;
+    @Override
+    public String toString() {
+        return "User {" + " id = " + id + " username = " + username +
+                " password = " + password + "}";
     }
 }
