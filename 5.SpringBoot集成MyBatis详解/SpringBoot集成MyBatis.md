@@ -670,3 +670,158 @@ public class UserService {
 
 ## 9. 复杂查询
 
+```java
+    public void findUser() {
+        // 1. 按主键查询
+//      User user =  userMapper.selectByPrimaryKey(1);
+//      if (user != null) {
+//          System.out.println(user.toString());
+//      }else {
+//          System.out.println("---------User-------------NULL");
+//      }
+
+      // 2. 按字段查询
+        User user = new User();
+        user.setUsername("user89");
+        List<User> listUser = userMapper.select(user);
+        System.out.println("size:" + listUser.size());
+
+        // 3. 多个条件查询
+        User user1 = new User();
+        user.setUsername("user73");
+        user.setPassword("3323231");
+        User obj = userMapper.selectOne(user);
+        if(obj != null) {
+            System.out.println(obj.toString());
+        }
+
+        // 4. 复杂查询用 Example.Criteria
+        Example example = new Example(User.class);
+        Example.Criteria criteria = example.createCriteria();
+        criteria.andEqualTo("username","user73");
+        criteria.andEqualTo("password", "3323231");
+        List<User> objs = userMapper.selectByExample(example);
+        if (objs.size() > 0)
+        {
+            for (int i = 0; i<objs.size(); i++)
+            {
+                System.out.println(objs.get(i).toString());
+            }
+        }
+
+        // 5. 模糊查询的例子
+        example = new Example(User.class);
+        criteria = example.createCriteria();
+        criteria.andLike("username","user4%");
+        objs = userMapper.selectByExample(example);
+        if (objs.size() > 0)
+        {
+            for (int i = 0; i<objs.size(); i++)
+            {
+                System.out.println(objs.get(i).toString());
+            }
+        }
+
+        // 6. 降序排序
+        example = new Example(User.class);
+        example.setOrderByClause("id desc");
+        criteria = example.createCriteria();
+        criteria.andLike("username","user4%");
+        objs = userMapper.selectByExample(example);
+        System.out.println("--------排序-------------");
+        if (objs.size() > 0)
+        {
+            for (int i = 0; i<objs.size(); i++)
+            {
+                System.out.println(objs.get(i).toString());
+            }
+        }
+
+        // 7. in ()查询
+        example = new Example(User.class);
+        criteria = example.createCriteria();
+        List ids = new ArrayList();
+        ids.add(1);
+        ids.add(2);
+        ids.add(49);
+        criteria.andIn("id", ids);
+        objs = userMapper.selectByExample(example);
+        System.out.println("--------in (1,2,49)-------------");
+        if (objs.size() > 0)
+        {
+            for (int i = 0; i<objs.size(); i++)
+            {
+                System.out.println(objs.get(i).toString());
+            }
+        }
+
+        // 8. 分页查询1
+        System.out.println("------------分页查询1--------------");
+        User obj2 = new User();
+        obj2.setUsername("121212");
+        int count = userMapper.selectCount(obj2);
+        System.out.println("分页例子,总条数: " + count);
+        objs = userMapper.selectByRowBounds(obj2, new RowBounds(0,10));
+        for (User u:objs)
+        {
+            System.out.println(u.toString());
+        }
+        // 9 分页查询2
+        example = new Example(User.class);
+        criteria = example.createCriteria();
+        criteria.andLike("username","user4%");
+        count = userMapper.selectCountByExample(example);
+        System.out.println("----------分页例子2:-----------");
+        objs = userMapper.selectByExampleAndRowBounds(example, new RowBounds(0,10));
+        System.out.println("--------分页例子2-------------");
+        for (User u:objs)
+        {
+            System.out.println(u.toString());
+        }
+    }
+```
+
+## 10. Druid
+
+### 10.1 什么是druid,它解决了什么问题?
+
+Druid是阿里巴巴开源平台上的一个项目，这个项目由数据库连接池，插件框架和SQL解析器组成。
+
+druid主要是为了解决JDBC的一些限制，可以让程序员实现一些特殊的需求，比如向秘钥服务请求凭证，统计SQL信息，SQL性能收集，SQL注入检查，SQL翻译等，程序员可以通过定制来实现自己需要的功能。
+
+官方地址：https://github.com/alibaba/druid
+
+### 10.2 建两个数据库和表
+
+```sql
+CREATE DATABASE xa_acctoun /*!40100 DEFAULT CHARACTER SET utf8*/;
+use xa_account;
+CREATE TABLE capital_account (
+    id int(10) NOT NULL AUTO_INCREMENT,
+    user_id int(10) NOT NULL COMMENT '用户ID',
+    balance_amount decimal(10,0) DEFAULT '0' COMMENT '账户余额',
+    create_time timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '创建时间',
+    update_time timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '更新时间',
+    PRIMARY KEY (id)
+) ENGINE=InnoDB AUTO_INCREMENT=1 DEFAULT CHARSET=utf8 COMMENT='账户信息表';
+```
+
+```mysql
+CREATE DATABASE xa_red_acctoun /*!40100 DEFAULT CHARACTER SET utf8*/;
+use xa_red_account;
+CREATE TABLE capital_account (
+    id int(10) NOT NULL AUTO_INCREMENT,
+    user_id int(10) NOT NULL COMMENT '用户ID',
+    balance_amount decimal(10,0) DEFAULT '0' COMMENT '账户余额',
+    create_time timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '创建时间',
+    update_time timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '更新时间',
+    PRIMARY KEY (id)
+) ENGINE=InnoDB AUTO_INCREMENT=1 DEFAULT CHARSET=utf8 COMMENT='红包账户信息表';
+```
+
+### 10.3 导入依赖的包 pom.xm
+
+```xml
+
+```
+

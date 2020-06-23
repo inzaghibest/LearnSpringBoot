@@ -1,0 +1,46 @@
+spring:
+  application:
+    name: spring-boot-mybatis-datasource
+  datasource:
+    druid:
+      account:
+        url: jdbc:mysql://49.232.105.82:3308/xa_account?useUnicode=true&characterEncoding=UTF-8&useSSL=false
+        username: root
+        password: 7324368Best!@
+        driver-class-name: com.mysql.jdbc.Driver
+        initial-size: 5
+        min-idle: 15
+        max-active: 60
+        validation-query: SELECT 1
+        test-on-borrow: true
+        test-while-idle: true
+        time-between-eviction-runs-millis: 60000
+      redpacket:
+        url: jdbc:mysql://49.232.105.82:3308/xa_red_account?useUnicode=true&characterEncoding=UTF-8&useSSL=false
+        username: root
+        password: 7324368Best!@
+        driver-class-name: com.mysql.jdbc.Driver
+        initial-size: 5
+        min-idle: 15
+        max-active: 60
+        validation-query: SELECT 1
+        test-on-borrow: true
+        test-while-idle: true
+        time-between-eviction-runs-millis: 60000
+      use-global-data-source-stat: true
+      stat-view-servlet:
+        enabled: true
+        url-pattern: /druid/*
+        reset-enable: false
+        login-username: admin
+        login-password: admin
+      web-stat-filter:
+        enabled: true
+        url-pattern: /*
+#        exclusions: *.js,*.gif,*jpg,*.png,*.css,*.icon,/druid/*
+  main:
+    allow-bean-definition-overriding: true
+  server:
+      port: 9090
+#logging:
+#  level: debug
