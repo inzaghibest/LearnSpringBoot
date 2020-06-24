@@ -819,9 +819,350 @@ CREATE TABLE capital_account (
 ) ENGINE=InnoDB AUTO_INCREMENT=1 DEFAULT CHARSET=utf8 COMMENT='红包账户信息表';
 ```
 
-### 10.3 导入依赖的包 pom.xm
+### 10.3 导入依赖的包 pom.xml
 
 ```xml
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+    <modelVersion>4.0.0</modelVersion>
+
+    <groupId>com.zhangxp</groupId>
+    <artifactId>spring-boot-mybatis-multi-datasource</artifactId>
+    <version>1.0-SNAPSHOT</version>
+
+    <properties>
+        <mysql.version>8.0.11</mysql.version>
+    </properties>
+
+    <parent>
+        <groupId>org.springframework.boot</groupId>
+        <artifactId>spring-boot-starter-parent</artifactId>
+        <version>2.2.6.RELEASE</version>
+    </parent>
+
+    <dependencies>
+        <!--1. spring boot web 组件整合了springmvc和spring-->
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-web</artifactId>
+        </dependency>
+
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-test</artifactId>
+        </dependency>
+
+        <!-- 通用spring boot Mapper -->
+        <dependency>
+            <groupId>tk.mybatis</groupId>
+            <artifactId>mapper-spring-boot-starter</artifactId>
+            <version>2.0.4</version>
+        </dependency>
+
+        <!-- druid数据库连接池 -->
+        <dependency>
+            <groupId>com.alibaba</groupId>
+            <artifactId>druid-spring-boot-starter</artifactId>
+            <version>1.1.18</version>
+        </dependency>
+
+        <!-- mysql驱动 -->
+        <dependency>
+            <groupId>mysql</groupId>
+            <artifactId>mysql-connector-java</artifactId>
+            <version>${mysql.version}</version>
+        </dependency>
+    </dependencies>
+</project>
+```
+
+### 10.4 修改配置文件
+
+```yaml
+spring:
+  application:
+    name: spring-boot-mybatis-datasource
+  datasource:
+    druid:
+      account:
+        url: jdbc:mysql://49.232.105.82:3308/xa_account?useUnicode=true&characterEncoding=UTF-8&useSSL=false
+        username: root
+        password: 7324368Best!@
+        driver-class-name: com.mysql.jdbc.Driver
+        initial-size: 5
+        min-idle: 15
+        max-active: 60
+        validation-query: SELECT 1
+        test-on-borrow: true
+        test-while-idle: true
+        time-between-eviction-runs-millis: 60000
+      redpacket:
+        url: jdbc:mysql://49.232.105.82:3308/xa_red_account?useUnicode=true&characterEncoding=UTF-8&useSSL=false
+        username: root
+        password: 7324368Best!@
+        driver-class-name: com.mysql.jdbc.Driver
+        initial-size: 5
+        min-idle: 15
+        max-active: 60
+        validation-query: SELECT 1
+        test-on-borrow: true
+        test-while-idle: true
+        time-between-eviction-runs-millis: 60000
+      use-global-data-source-stat: true
+      stat-view-servlet:
+        enabled: true
+        url-pattern: /druid/*
+        reset-enable: false
+        login-username: admin
+        login-password: admin
+      web-stat-filter:
+        enabled: true
+        url-pattern: /*
+#        exclusions: *.js,*.gif,*jpg,*.png,*.css,*.icon,/druid/*
+  main:
+    allow-bean-definition-overriding: true
+  server:
+      port: 9090
+#logging:
+#  level: debug
+```
+
+### 10.5 将配置信息，注入druid
+
+1) MyBatisConfiguration
+
+```java
+package com.zhangxp.boot.config;
+
+import com.alibaba.druid.spring.boot.autoconfigure.DruidDataSourceBuilder;
+import org.springframework.boot.context.properties.ConfigurationProperties;
+import org.springframework.boot.context.properties.EnableConfigurationProperties;
+import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.Configuration;
+import org.springframework.transaction.annotation.EnableTransactionManagement;
+
+import javax.sql.DataSource;
+
+@Configuration
+@EnableConfigurationProperties
+@EnableTransactionManagement(proxyTargetClass = true)
+public class MybatisConfiguration {
+    /**
+     * account数据库配置前缀
+    * */
+    final static String ACCOUNT_PREFIX = "spring.datasource.druid.account";
+    /**
+     * redpacket数据库配置前缀
+     * */
+    final static String REDPACKET_PREFIX = "spring.datasource.druid.redpacket";
+
+    @Bean(name = "AccountDataSource")
+    @ConfigurationProperties(prefix = ACCOUNT_PREFIX)
+    public DataSource accountDataSource () {
+        return DruidDataSourceBuilder.create().build();
+    }
+
+    @Bean(name = "RedPacketDataSource")
+    @ConfigurationProperties(prefix = REDPACKET_PREFIX)
+    public DataSource redPacketDataSource () {
+        return DruidDataSourceBuilder.create().build();
+    }
+}
+```
+
+2) AccountDataSourceConfig
+
+```java
+package com.zhangxp.boot.config;
+
+import org.apache.ibatis.session.SqlSessionFactory;
+import org.mybatis.spring.SqlSessionFactoryBean;
+import org.mybatis.spring.SqlSessionTemplate;
+import org.springframework.beans.factory.FactoryBean;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
+import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.Configuration;
+import org.springframework.core.io.support.PathMatchingResourcePatternResolver;
+import org.springframework.jdbc.datasource.DataSourceTransactionManager;
+import tk.mybatis.spring.annotation.MapperScan;
+
+import javax.sql.DataSource;
+
+@Configuration
+@MapperScan(basePackages = {"com.zhangxp.boot.mapper.account.mapper"}, sqlSessionFactoryRef = "accountSqlSessionFactory")
+public class AccountDataSourceConfiguration {
+    public static final String MAPPER_XML_LOCATION = "classpath*:com/zhangxp/boot/mapper/account/mapper/xml/*.xml";
+
+    @Autowired
+    @Qualifier("AccountDataSource")
+    DataSource accountDataSource;
+
+    @Bean
+    public SqlSessionTemplate sqlSessionTemplate() throws Exception {
+        return new SqlSessionTemplate(accountSqlSessionFactory());
+    }
+
+    @Bean
+    public SqlSessionFactory accountSqlSessionFactory() throws Exception {
+        SqlSessionFactoryBean sqlSessionFactoryBean = new SqlSessionFactoryBean();
+        sqlSessionFactoryBean.setDataSource(accountDataSource);
+        // 指定XML文件路径
+        sqlSessionFactoryBean.setMapperLocations(new PathMatchingResourcePatternResolver().getResources(MAPPER_XML_LOCATION));
+        return sqlSessionFactoryBean.getObject();
+    }
+
+    @Bean(name = "transactionManager")
+    public DataSourceTransactionManager transactionManager() {
+        return new DataSourceTransactionManager(accountDataSource);
+    }
+}
 
 ```
+
+3) RedAccountDataSourceConfig
+
+```java
+package com.zhangxp.boot.config;
+
+import org.apache.ibatis.session.SqlSessionFactory;
+import org.mybatis.spring.SqlSessionFactoryBean;
+import org.mybatis.spring.SqlSessionTemplate;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
+import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.Configuration;
+import org.springframework.core.io.support.PathMatchingResourcePatternResolver;
+import org.springframework.jdbc.datasource.DataSourceTransactionManager;
+import tk.mybatis.spring.annotation.MapperScan;
+
+import javax.sql.DataSource;
+
+@Configuration
+@MapperScan(basePackages = {"com.zhangxp.boot.mapper.redaccount.mapper"}, sqlSessionFactoryRef = "redAccountSqlSessionFactory")
+public class RedAccountDataSourceConfiguration {
+    public static final String MAPPER_XML_LOCATION = "classpath*:com/zhangxp/boot/mapper/redaccount/mapper/xml/*.xml";
+
+    @Autowired
+    @Qualifier("RedPacketDataSource")
+    DataSource redAccountDataSource;
+
+    @Bean
+    public SqlSessionTemplate sqlSessionTemplate() throws Exception {
+        return new SqlSessionTemplate(redAccountSqlSessionFactory());
+    }
+
+    @Bean
+    public SqlSessionFactory redAccountSqlSessionFactory() throws Exception {
+        SqlSessionFactoryBean sqlSessionFactoryBean = new SqlSessionFactoryBean();
+        sqlSessionFactoryBean.setDataSource(redAccountDataSource);
+        // 指定XML文件路径
+        sqlSessionFactoryBean.setMapperLocations(new PathMatchingResourcePatternResolver().getResources(MAPPER_XML_LOCATION));
+        return sqlSessionFactoryBean.getObject();
+    }
+
+    @Bean(name = "transactionManager")
+    public DataSourceTransactionManager transactionManager() {
+        return new DataSourceTransactionManager(redAccountDataSource);
+    }
+}
+```
+
+### 10.6 自动生成mapper,entity.
+
+### 10.7 编写服务
+
+```java
+package com.zhangxp.boot.service;
+
+import com.zhangxp.boot.mapper.account.entity.CapitalAccount;
+import com.zhangxp.boot.mapper.account.mapper.CapitalAccountMapper;
+import com.zhangxp.boot.mapper.redaccount.entity.RedPacketAccount;
+import com.zhangxp.boot.mapper.redaccount.mapper.RedPacketAccountMapper;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+
+/**
+ * Created by zhangxp on 2020/6/24.
+ */
+@Service
+public class PayService {
+    @Autowired
+    private CapitalAccountMapper capitalAccountMapper;
+    @Autowired
+    private RedPacketAccountMapper redPacketAccountMapper;
+
+    @Transactional(rollbackFor = Exception.class)
+    public void payAccount(int userId, int account) {
+        System.out.println("--------------payAccount------------------");
+        CapitalAccount capitalAccount = new CapitalAccount();
+        capitalAccount.setUserId(userId);
+        CapitalAccount capitalAccountDTO = this.capitalAccountMapper.selectOne(capitalAccount);
+        // 从账户里扣钱
+        if (capitalAccountDTO != null) {
+            System.out.println("--------------扣钱----------------");
+            capitalAccountDTO.setBalanceAmount(capitalAccountDTO.getBalanceAmount() - account);
+            System.out.println(capitalAccountDTO.toString());
+            this.capitalAccountMapper.updateByPrimaryKey(capitalAccountDTO);
+        }
+    }
+
+    @Transactional(rollbackFor = Exception.class)
+    public void payRedAccount(int userId, int account) {
+        System.out.println("--------------payRedAccount------------------");
+        RedPacketAccount redPacketAccount = new RedPacketAccount();
+        redPacketAccount.setUserId(userId);
+        RedPacketAccount redPacketAccountDTO = this.redPacketAccountMapper.selectOne(redPacketAccount);
+        // 给账户里加钱
+        if (redPacketAccountDTO != null) {
+            System.out.println("--------------加钱----------------");
+            redPacketAccountDTO.setBalanceAmount(redPacketAccountDTO.getBalanceAmount() + account);
+            System.out.println(redPacketAccountDTO.toString());
+            this.redPacketAccountMapper.updateByPrimaryKey(redPacketAccountDTO);
+        }
+    }
+
+    @Transactional(rollbackFor = Exception.class)
+    public void pay(int fromUserId, int toUserId, int account) {
+        System.out.println("--------------pay------------------");
+        this.payAccount(fromUserId, account);
+        this.payRedAccount(toUserId, account);
+    }
+}
+
+```
+
+### 10.8 测试服务
+
+```java
+package com.zhangxp.boot.controller;
+
+import com.zhangxp.boot.service.PayService;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestMethod;
+import org.springframework.web.bind.annotation.RestController;
+
+/**
+ * Created by zhangxp on 2020/6/24.
+ */
+@RestController
+public class payController {
+    @Autowired
+    private PayService payService;
+    @RequestMapping(value= "/pay", method = RequestMethod.GET)
+    public void pay() {
+        payService.pay(2, 1,100);
+    }
+
+}
+
+```
+
+### 10.9 多数据源的大坑
+
+druid并不是解决分布式事务的，这意味着关联的两个数据源的操作，并不能保证同时完成。也就是说一个数据库操作完成，另一个操作发生异常等情况时，并不会回滚正常操作的数据库操作。
 

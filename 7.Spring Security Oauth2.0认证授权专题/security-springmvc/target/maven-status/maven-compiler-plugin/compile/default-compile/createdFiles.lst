@@ -1,0 +1,3 @@
+com\zhangxp\security\springmvc\config\WebConfig.class
+com\zhangxp\security\springmvc\config\ApplicationConfig.class
+com\zhangxp\security\springmvc\init\SpringApplicationInitializer.class

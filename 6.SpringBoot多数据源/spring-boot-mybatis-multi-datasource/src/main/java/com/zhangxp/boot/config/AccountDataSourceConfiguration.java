@@ -17,7 +17,7 @@ import javax.sql.DataSource;
 @Configuration
 @MapperScan(basePackages = {"com.zhangxp.boot.mapper.account.mapper"}, sqlSessionFactoryRef = "accountSqlSessionFactory")
 public class AccountDataSourceConfiguration {
-    public static final String MAPPER_XML_LOCATION = "classpath*:com/zhangxp/boot/mapper/account/mapper/*.xml";
+    public static final String MAPPER_XML_LOCATION = "classpath*:com/zhangxp/boot/mapper/account/mapper/xml/*.xml";
 
     @Autowired
     @Qualifier("AccountDataSource")

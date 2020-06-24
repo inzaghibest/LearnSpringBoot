@@ -14,9 +14,9 @@ import tk.mybatis.spring.annotation.MapperScan;
 import javax.sql.DataSource;
 
 @Configuration
-@MapperScan(basePackages = {"com.zhangxp.boot.mapper.redaccount.mapper"}, sqlSessionFactoryRef = "accountSqlSessionFactory")
+@MapperScan(basePackages = {"com.zhangxp.boot.mapper.redaccount.mapper"}, sqlSessionFactoryRef = "redAccountSqlSessionFactory")
 public class RedAccountDataSourceConfiguration {
-    public static final String MAPPER_XML_LOCATION = "classpath*:com/zhangxp/boot/mapper/redaccount/mapper/*.xml";
+    public static final String MAPPER_XML_LOCATION = "classpath*:com/zhangxp/boot/mapper/redaccount/mapper/xml/*.xml";
 
     @Autowired
     @Qualifier("RedPacketDataSource")

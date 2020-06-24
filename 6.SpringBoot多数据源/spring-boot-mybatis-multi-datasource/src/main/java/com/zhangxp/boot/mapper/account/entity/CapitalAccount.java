@@ -2,12 +2,14 @@ package com.zhangxp.boot.mapper.account.entity;
 
 import javax.persistence.Column;
 import javax.persistence.GeneratedValue;
+import javax.persistence.Id;
 import javax.persistence.Table;
 import java.util.Date;
 
 @Table(name = "capital_account")
 public class CapitalAccount {
     @GeneratedValue(generator = "JDBC")
+    @Id
     private Integer id;
 
     /**
@@ -118,5 +120,10 @@ public class CapitalAccount {
      */
     public void setUpdateTime(Date updateTime) {
         this.updateTime = updateTime;
+    }
+
+    @Override
+    public String toString() {
+        return "userId: " + this.getUserId() + "balance: " + this.getBalanceAmount();
     }
 }

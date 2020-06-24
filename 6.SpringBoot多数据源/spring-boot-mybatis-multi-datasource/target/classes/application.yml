@@ -40,5 +40,7 @@ spring:
 #        exclusions: *.js,*.gif,*jpg,*.png,*.css,*.icon,/druid/*
   main:
     allow-bean-definition-overriding: true
-  server:
-      port: 9090
+server:
+  port: 9090
+#logging:
+#  level: debug
