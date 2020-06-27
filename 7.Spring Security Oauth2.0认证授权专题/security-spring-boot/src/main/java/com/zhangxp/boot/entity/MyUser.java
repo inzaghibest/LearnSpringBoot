@@ -3,9 +3,15 @@ package com.zhangxp.boot.entity;
 import javax.persistence.GeneratedValue;
 import javax.persistence.Id;
 import javax.persistence.Table;
+import java.util.Set;
 
 @Table(name = "myuser")
 public class MyUser {
+    public static final String SESSION_USER_KEY = "_user";
+    /**
+     * 用户权限
+     * */
+    private Set<String> authorities;
     @GeneratedValue(generator = "JDBC")
     @Id
     private Integer id;
@@ -18,6 +24,7 @@ public class MyUser {
 
     private String mobile;
 
+    private String authorites;
     /**
      * @return id
      */
@@ -86,5 +93,24 @@ public class MyUser {
      */
     public void setMobile(String mobile) {
         this.mobile = mobile;
+    }
+
+    /**
+     * @return authorites
+     */
+    public String getAuthorites() {
+        return authorites;
+    }
+
+    /**
+     * @param authorites
+     */
+    public void setAuthorites(String authorites) {
+        this.authorites = authorites;
+    }
+
+    @Override
+    public String toString() {
+        return "用户信息: username = " + this.username + " password = " + this.password;
     }
 }

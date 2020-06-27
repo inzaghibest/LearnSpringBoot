@@ -15,6 +15,8 @@ public class MyUser {
 
     private String mobile;
 
+    private String authorites;
+
     /**
      * @return id
      */
@@ -83,5 +85,19 @@ public class MyUser {
      */
     public void setMobile(String mobile) {
         this.mobile = mobile;
+    }
+
+    /**
+     * @return authorites
+     */
+    public String getAuthorites() {
+        return authorites;
+    }
+
+    /**
+     * @param authorites
+     */
+    public void setAuthorites(String authorites) {
+        this.authorites = authorites;
     }
 }

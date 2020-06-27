@@ -10,5 +10,6 @@
     <result column="username" jdbcType="VARCHAR" property="username" />
     <result column="fullname" jdbcType="VARCHAR" property="fullname" />
     <result column="mobile" jdbcType="VARCHAR" property="mobile" />
+    <result column="authorites" jdbcType="VARCHAR" property="authorites" />
   </resultMap>
 </mapper>
